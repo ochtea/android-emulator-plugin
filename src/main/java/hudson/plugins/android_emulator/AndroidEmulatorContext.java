@@ -47,19 +47,18 @@ public class AndroidEmulatorContext {
         final Computer computer = Computer.currentComputer();
         portAllocator = PortAllocationManager.getManager(computer);
 
-        // ADB allows up to 64 local devices, each of which uses two consecutive ports: one for the
-        // user telnet interface, and one to communicate with ADB.  These pairs start at port 5554.
-        // http://android.googlesource.com/platform/system/core/+/d387acc/adb/adb.h#206
-        // http://android.googlesource.com/platform/system/core/+/d387acc/adb/transport_local.cpp#44
+        // Port range should be in [5555,5586]. From the error message Android emulator as follows:
+        // - `emulator: WARNING: Requested adb port (5619) is outside the recommended range [5555,5586]. ADB may not function properly for the emulator. See -help-port for details.`
+        // These port pairs are defined in:
+        // - https://android.googlesource.com/platform/system/core/+/6e06bcc/adb/adb.h#196
+        // - https://android.googlesource.com/platform/system/core/+/6e06bcc/adb/transport_local.cpp#58
         //
-        // So long as the ADB server automatically registers itself with any emulators in the
-        // standard port range of 5555–5861, then we should avoid using that port range.
-        // Otherwise, when we run multiple ADB servers and emulators at the same time, each of the
-        // ADB servers will race to register with each emulator, meaning that each build will most
-        // likely end up with an emulator that always ends up appearing to be "offline".
-        // See http://b.android.com/205197
-        final int PORT_RANGE_START = 5554 + (2 * 64);
-        final int PORT_RANGE_END = PORT_RANGE_START + (2 * 64);
+        // In prior ADB behavior can register devices with out of port range, but it seems it can not in Build-tools 28.0.3
+        // So we should use properly port range in this plugin, but this may have the problem that
+        // each build will most likely end up with an emulator that always ends up appearing to be "offline"
+        // on multiple ADB/emulator running environments :P
+        final int PORT_RANGE_START = 5555;
+        final int PORT_RANGE_END = 5586;
 
         // When using the emulator `-port` option, the first port must be even, so here we reserve
         // three consecutive ports, ensuring that we will get an even port followed by an odd

@@ -375,7 +375,7 @@ public class AndroidEmulator extends BuildWrapper implements Serializable {
 
         // Compile complete command for starting emulator
         final String emulatorArgs = emuConfig.getCommandArguments(snapshotState, androidSdk,
-                emu.userPort(), emu.adbPort(), emu.getEmulatorCallbackPort(),
+                emu.userPort(), emu.adbPort(), emu.userPort(),
                 ADB_CONNECT_TIMEOUT_MS / 1000);
 
         // Workaround bug 64356053 and set QEMU environment if audio should be disabled
@@ -411,21 +411,6 @@ public class AndroidEmulator extends BuildWrapper implements Serializable {
             log(logger, Messages.EMULATOR_ALREADY_IN_USE(emuConfig.getAvdName()));
             return null;
         }
-
-        // Sitting on the socket appears to break adb. If you try and do this you always end up with device offline.
-        // A much better way is to use report-console to tell us what the port is (and hence when its available). So
-        // we now do this. adb is also now clever enough to figure out that the emulator is booting and will thus
-        // cope without this.
-
-        // Wait for TCP socket to become available
-        int socket = waitForSocket(launcher, emu.getEmulatorCallbackPort(), ADB_CONNECT_TIMEOUT_MS);
-        if (socket < 0) {
-            log(logger, Messages.EMULATOR_DID_NOT_START());
-            build.setResult(Result.NOT_BUILT);
-            cleanUp(emuConfig, emu, androidSdk);
-            return null;
-        }
-        log(logger, Messages.EMULATOR_CONSOLE_REPORT(socket));
 
         // As of SDK Tools r12, "emulator" is no longer the main process; it just starts a certain
         // child process depending on the AVD architecture.  Therefore on Windows, checking the
