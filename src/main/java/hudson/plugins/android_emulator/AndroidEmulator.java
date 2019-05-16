@@ -375,7 +375,7 @@ public class AndroidEmulator extends BuildWrapper implements Serializable {
 
         // Compile complete command for starting emulator
         final String emulatorArgs = emuConfig.getCommandArguments(snapshotState, androidSdk,
-                emu.userPort(), emu.adbPort(), emu.getEmulatorCallbackPort(),
+                emu.userPort(), emu.adbPort(), emu.userPort(),
                 ADB_CONNECT_TIMEOUT_MS / 1000);
 
         // Workaround bug 64356053 and set QEMU environment if audio should be disabled
@@ -418,7 +418,7 @@ public class AndroidEmulator extends BuildWrapper implements Serializable {
         // cope without this.
 
         // Wait for TCP socket to become available
-        int socket = waitForSocket(launcher, emu.getEmulatorCallbackPort(), ADB_CONNECT_TIMEOUT_MS);
+        int socket = waitForSocket(launcher, emu.userPort(), ADB_CONNECT_TIMEOUT_MS);
         if (socket < 0) {
             log(logger, Messages.EMULATOR_DID_NOT_START());
             build.setResult(Result.NOT_BUILT);
